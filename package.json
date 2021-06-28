@@ -1,7 +1,7 @@
 {
-  "name": "@we-mobius/lib-template",
+  "name": "@we-mobius/mobius-mina",
   "version": "0.1.0",
-  "description": "Mobius flavor lib template project.",
+  "description": "Mobius MINA.",
   "type": "module",
   "main": "./src/main.js",
   "exports": {
@@ -46,18 +46,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/we-mobius/lib-template.git"
+    "url": "git+https://github.com/we-mobius/mobius-mina.git"
   },
   "author": {
     "name": "kongxiangyan",
     "email": "kcigaret@outlook.com",
-    "url": "http://cigaret.world/"
+    "url": "http://www.cigaret.world/"
   },
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/we-mobius/lib-template/issues"
+    "url": "https://github.com/we-mobius/mobius-mina/issues"
   },
-  "homepage": "https://github.com/we-mobius/lib-template#readme",
+  "homepage": "https://github.com/we-mobius/mobius-mina#readme",
   "devDependencies": {
     "@babel/core": "^7.11.6",
     "@babel/eslint-parser": "^7.11.5",
