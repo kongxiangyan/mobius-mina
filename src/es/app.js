@@ -1,8 +1,10 @@
 import {
   Data,
-  replayWithLatest,
-  binaryTweenPipeAtom
+  replayWithLatest
 } from '../libs/mobius-utils.js'
+import { appRD as globalAppRD } from './global.js'
+
+const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
 
 export const appDriver = (options) => {
   const { defaultGlobalData = {} } = options
@@ -19,16 +21,24 @@ export const appDriver = (options) => {
   const appRD = replayWithLatest(1, Data.empty())
 
   // 跟官方文档的指示保持一致，在 appInstance 中预置一个 globalData 字段用于保存全局数据
-  const globalDataInD = Data.empty()
-  const globalDataRD = replayWithLatest(1, Data.of(defaultGlobalData))
-  binaryTweenPipeAtom(globalDataInD, globalDataRD)
-  globalDataInD.subscribeValue(data => {
-    getApp().globalData = data
+  const globalDataInRD = replayWithLatest(1, Data.of(defaultGlobalData))
+  const globalDataChangeRD = replayWithLatest(1, Data.of({ prev: null, cur: null, change: null }))
+  const globalDataOutRD = replayWithLatest(1, Data.empty())
+  globalDataInRD.subscribeValue(data => {
+    const app = getApp({ allowDefault: true })
+
+    const prevData = deepCopyViaJSON(app.globalData)
+    app.setGlobalData(data)
+    const curData = deepCopyViaJSON(app.globalData)
+
+    globalDataOutRD.triggerValue(curData)
+    globalDataChangeRD.triggerValue({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) })
   })
 
   // @refer: https://developers.weixin.qq.com/miniprogram/dev/reference/api/App.html
   const appOptions = {
     onLaunch (options) {
+      globalAppRD.triggerValue(this)
       appRD.triggerValue(this)
       launchRD.triggerValue(options)
     },
@@ -56,7 +66,7 @@ export const appDriver = (options) => {
 
   return {
     inputs: {
-      globalData: globalDataInD
+      globalData: globalDataInRD
     },
     outputs: {
       app: appRD,
@@ -67,7 +77,8 @@ export const appDriver = (options) => {
       pageNotFound: pageNotFoundRD,
       unhandledRejection: unhandledRejectionRD,
       themeChange: themeChangeRD,
-      globalData: globalDataRD
+      globalData: globalDataOutRD,
+      globalDataChange: globalDataChangeRD
     }
   }
 }

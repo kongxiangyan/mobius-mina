@@ -15,6 +15,8 @@ const RESERVED_PAGE_METHOD_NAMES = [
   'shareAppMessage', 'shareTimeline', 'addToFavorites'
 ]
 
+const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
+
 const makeMethodsItem = method => {
   if (isString(method)) {
     const _data = Data.empty()
@@ -91,23 +93,25 @@ export const pageDriver = createGeneralDriver({
 
     const pageRD = replayWithLatest(1, Data.empty())
 
+    // page.data 和 app.globalData 的数据初始化逻辑不同
+    // 原因在于 page 在注册的时候就需要一个初始的 data，而 app.globalData 并不需要
     const dataInD = Data.empty()
     const dataOutRD = replayWithLatest(1, Data.of(defaultData))
     const dataChangeRD = replayWithLatest(1, Data.of({ prev: null, cur: defaultData, change: defaultData }))
     const renderedDataRD = replayWithLatest(1, Data.of(defaultData))
 
     promiseWithLatestFromT(pageRD, dataInD).subscribeValue(([data, page]) => {
-      const getPageData = () => JSON.parse(JSON.stringify(page.data))
-      const prevData = getPageData()
+      const prevData = deepCopyViaJSON(page.data)
       // setData 在逻辑层的操作是同步，因此 this.data 中的相关数据会立即更新；
       // setData在视图层的操作是异步，因此页面渲染可能并不会立即发生。
       //  -> 回调函数 在 setData 引起的界面更新渲染完毕后执行
       page.setData({ ...data }, () => {
-        renderedDataRD.triggerValue(getPageData())
+        renderedDataRD.triggerValue(deepCopyViaJSON(page.data))
       })
-      const curData = getPageData()
+      const curData = deepCopyViaJSON(page.data)
+
       dataOutRD.triggerValue(curData)
-      dataChangeRD.triggerValue({ prev: prevData, cur: curData, change: data })
+      dataChangeRD.triggerValue({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) })
     })
 
     const shareAppMessageInfoInD = Data.of({})
