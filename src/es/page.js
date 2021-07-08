@@ -5,6 +5,7 @@ import {
   promiseWithLatestFromT,
   createGeneralDriver, useGeneralDriver
 } from '../libs/mobius-utils.js'
+import { useExitStateDriver } from './exitState.page.js'
 
 // TODO: pageScroll 添加节流选项
 // TODO: overwriteReserved 添加更加多样的控制选项，包括提示级别（info, warn, error）、更精确的字段规则（为单独的方法名定义规则）
@@ -12,7 +13,8 @@ import {
 const RESERVED_PAGE_METHOD_NAMES = [
   'load', 'show', 'ready', 'ready', 'hide', 'unload', 'tabItemTap',
   'pullDownRefresh', 'reachBottom', 'pageScroll', 'resize',
-  'shareAppMessage', 'shareTimeline', 'addToFavorites'
+  'shareAppMessage', 'shareTimeline', 'addToFavorites',
+  'onSaveExitState'
 ]
 
 const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
@@ -86,9 +88,14 @@ export const pageDriver = createGeneralDriver({
     // 当 isOverwriteReserved 设置为 true 的时候，methods 如果涉及到保留方法名，不会在控制台打印提示
     // 我们希望这些「非常规」操作在开发者编写的代码层面有所体现，而不是必需要靠推断才能够知晓
     const {
-      data: defaultData = {}, methods = {}, isOverwriteReserved = false,
-      enableShareAppMessage = false, enableShareTimeline = false, enableAddToFavorites = false,
-      enablePageScroll = false
+      name,
+      data: defaultData = {}, methods = {},
+      config: {
+        isOverwriteReserved = false,
+        enableShareAppMessage = false, enableShareTimeline = false, enableAddToFavorites = false,
+        enablePageScroll = false,
+        enableExitState = false
+      } = {}
     } = options
 
     const pageRD = replayWithLatest(1, Data.empty())
@@ -114,6 +121,7 @@ export const pageDriver = createGeneralDriver({
       dataChangeRD.triggerValue({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) })
     })
 
+    // 分享和收藏
     const shareAppMessageInfoInD = Data.of({})
     const shareTimelineInfoInD = Data.of({})
     const addToFavoritesInfoInD = Data.of({})
@@ -158,6 +166,8 @@ export const pageDriver = createGeneralDriver({
     // @refer: https://developers.weixin.qq.com/miniprogram/dev/framework/app-service/page-life-cycle.html
     // @refer: https://developers.weixin.qq.com/miniprogram/dev/framework/app-service/route.html
     const pageOptions = {
+      type: 'page',
+      name: name,
       data: defaultData,
       options: {
         // @refer: https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/pure-data.html
@@ -220,6 +230,9 @@ export const pageDriver = createGeneralDriver({
         pageScrollRD.triggerValue(res)
       }
     }
+
+    const exitStateDriver = useExitStateDriver({ enableExitState, pageOptions, autoEquip: true }, {})
+
     Page(pageOptions)
 
     return {
@@ -228,6 +241,7 @@ export const pageDriver = createGeneralDriver({
         shareAppMessageInfo: shareAppMessageInfoInD,
         shareTimelineInfo: shareTimelineInfoInD,
         addToFavorites: addToFavoritesInfoInD,
+        ...exitStateDriver.inputs,
         ...methodAtoms
       },
       outputs: {
@@ -246,6 +260,7 @@ export const pageDriver = createGeneralDriver({
         resize: resizeRD,
         tabItemTap: tabItemTapD,
 
+        ...exitStateDriver.outputs,
         ...methodAtoms
       }
     }
