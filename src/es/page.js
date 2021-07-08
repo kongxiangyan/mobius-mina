@@ -88,7 +88,7 @@ export const pageDriver = createGeneralDriver({
     // 当 isOverwriteReserved 设置为 true 的时候，methods 如果涉及到保留方法名，不会在控制台打印提示
     // 我们希望这些「非常规」操作在开发者编写的代码层面有所体现，而不是必需要靠推断才能够知晓
     const {
-      name,
+      name = 'UnnamedPage',
       data: defaultData = {}, methods = {},
       config: {
         isOverwriteReserved = false,
