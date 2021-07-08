@@ -31,34 +31,34 @@ export const appDriver = (options) => {
     app.setGlobalData(data)
     const curData = deepCopyViaJSON(app.globalData)
 
-    globalDataOutRD.triggerValue(curData)
-    globalDataChangeRD.triggerValue({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) })
+    globalDataOutRD.mutate(() => curData)
+    globalDataChangeRD.mutate(() => ({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) }))
   })
 
   // @refer: https://developers.weixin.qq.com/miniprogram/dev/reference/api/App.html
   const appOptions = {
     onLaunch (options) {
-      globalAppRD.triggerValue(this)
-      appRD.triggerValue(this)
-      launchRD.triggerValue(options)
+      globalAppRD.mutate(() => this)
+      appRD.mutate(() => this)
+      launchRD.mutate(() => options)
     },
     onShow (options) {
-      showRD.triggerValue(options)
+      showRD.mutate(() => options)
     },
     onHide () {
-      hideRD.triggerValue({})
+      hideRD.mutate(() => ({}))
     },
     onError (error) {
-      errorRD.triggerValue(error)
+      errorRD.mutate(() => error)
     },
     onPageNotFound (res) {
-      pageNotFoundRD.triggerValue(res)
+      pageNotFoundRD.mutate(() => res)
     },
     onUnhandledRejection (res) {
-      unhandledRejectionRD.triggerValue(res)
+      unhandledRejectionRD.mutate(() => res)
     },
     onThemeChange ({ theme }) {
-      themeChangeRD.triggerValue({ theme, isDark: theme === 'dark', isLight: theme === 'light' })
+      themeChangeRD.mutate(() => ({ theme, isDark: theme === 'dark', isLight: theme === 'light' }))
     },
     globalData: defaultGlobalData
   }
