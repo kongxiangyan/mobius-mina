@@ -5,6 +5,7 @@ import {
   promiseWithLatestFromT,
   createGeneralDriver, useGeneralDriver
 } from '../libs/mobius-utils.js'
+import { usePageShareDriver } from './share.page.js'
 import { useExitStateDriver } from './exitState.page.js'
 
 // TODO: pageScroll 添加节流选项
@@ -45,7 +46,7 @@ const makeMethodsItem = method => {
     if (!func && !data) {
       const _data = Data.empty()
       const _func = function (e) {
-        _data.triggerValue(e)
+        _data.mutate(() => e)
       }
       res.data = _data
       res.func = _func
@@ -53,7 +54,7 @@ const makeMethodsItem = method => {
     // 如果提供了 data 但没有提供 func，则使用 data 创建 func
     if (!func && data) {
       const _func = function (e) {
-        data.triggerValue(e)
+        data.mutate(() => e)
       }
       res.data = data
       res.func = _func
@@ -121,11 +122,6 @@ export const pageDriver = createGeneralDriver({
       dataChangeRD.triggerValue({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) })
     })
 
-    // 分享和收藏
-    const shareAppMessageInfoInD = Data.of({})
-    const shareTimelineInfoInD = Data.of({})
-    const addToFavoritesInfoInD = Data.of({})
-
     // 生命周期和内置方法
     const loadRD = replayWithLatest(1, Data.empty())
     const showRD = replayWithLatest(1, Data.empty())
@@ -134,12 +130,10 @@ export const pageDriver = createGeneralDriver({
     const unloadRD = replayWithLatest(1, Data.empty())
     const pullDownRefreshD = Data.empty()
     const reachBottomD = Data.empty()
-    const shareAppMessageRD = replayWithLatest(1, Data.empty())
-    const shareTimelineRD = replayWithLatest(1, Data.empty())
-    const addToFavoritesD = Data.empty()
+
     const pageScrollRD = replayWithLatest(1, Data.empty())
     const resizeRD = replayWithLatest(1, Data.empty())
-    const tabItemTapD = Data.empty()
+    const tabItemTapRD = replayWithLatest(1, Data.empty())
 
     const validMethods = makeValidMethods(methods)
     const methodFuncs = validMethods.reduce((prev, { name, func }) => {
@@ -174,63 +168,44 @@ export const pageDriver = createGeneralDriver({
         pureDataPattern: /^_/
       },
       onLoad: function (options) {
-        pageRD.triggerValue(this)
-        loadRD.triggerValue(options)
+        pageRD.mutate(() => this)
+        loadRD.mutate(() => options)
       },
       onShow: function () {
-        showRD.triggerValue({})
+        showRD.mutate(() => ({}))
       },
       onReady: function () {
-        readyRD.triggerValue({})
+        readyRD.mutate(() => ({}))
       },
       onHide: function () {
-        hideRD.triggerValue({})
+        hideRD.mutate(() => ({}))
       },
       onUnload: function () {
-        unloadRD.triggerValue({})
-        pageRD.triggerValue(null)
+        unloadRD.mutate(() => ({}))
+        pageRD.mutate(() => null)
       },
       onPullDownRefresh: function () {
-        pullDownRefreshD.trigger({})
+        pullDownRefreshD.triggerValue({})
       },
       onReachBottom: function () {
         reachBottomD.triggerValue({})
       },
       onResize: function (res) {
-        resizeRD.triggerValue(res)
+        resizeRD.mutate(() => res)
       },
       onTabItemTap: function (res) {
-        tabItemTapD.triggerValue(res)
+        tabItemTapRD.mutate(() => res)
       },
       ...methodFuncs
     }
-    if (enableShareAppMessage && !pageOptions.onShareAppMessage) {
-      pageOptions.onShareAppMessage = function (res) {
-        shareAppMessageRD.triggerValue(res)
-        const shareInfo = shareAppMessageInfoInD.value
-        return { ...shareInfo }
-      }
-    }
-    if (enableShareTimeline && !pageOptions.onShareTimeline) {
-      pageOptions.onShareTimeline = function (res) {
-        shareTimelineRD.triggerValue(res)
-        const shareInfo = shareTimelineInfoInD.value
-        return { ...shareInfo }
-      }
-    }
-    if (enableAddToFavorites && !pageOptions.onAddToFavorites) {
-      pageOptions.onAddToFavorites = function (res) {
-        addToFavoritesD.triggerValue(res)
-        const addInfo = addToFavoritesInfoInD.value
-        return { ...addInfo }
-      }
-    }
+    // @refer: https://developers.weixin.qq.com/miniprogram/dev/reference/api/Page.html#onPageScroll-Object-object
     if (enablePageScroll && !pageOptions.onPageScroll) {
       pageOptions.onPageScroll = function (res) {
-        pageScrollRD.triggerValue(res)
+        pageScrollRD.mutate(() => res)
       }
     }
 
+    const pageShareDriver = usePageShareDriver({ enableShareAppMessage, enableShareTimeline, enableAddToFavorites, autoEquip: true }, {})
     const exitStateDriver = useExitStateDriver({ enableExitState, pageOptions, autoEquip: true }, {})
 
     Page(pageOptions)
@@ -238,9 +213,7 @@ export const pageDriver = createGeneralDriver({
     return {
       inputs: {
         data: dataInD,
-        shareAppMessageInfo: shareAppMessageInfoInD,
-        shareTimelineInfo: shareTimelineInfoInD,
-        addToFavorites: addToFavoritesInfoInD,
+        ...pageShareDriver.inputs,
         ...exitStateDriver.inputs,
         ...methodAtoms
       },
@@ -258,8 +231,9 @@ export const pageDriver = createGeneralDriver({
         reachBottom: reachBottomD,
 
         resize: resizeRD,
-        tabItemTap: tabItemTapD,
+        tabItemTap: tabItemTapRD,
 
+        ...pageShareDriver.outputs,
         ...exitStateDriver.outputs,
         ...methodAtoms
       }
