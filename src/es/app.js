@@ -60,6 +60,8 @@ export const appDriver = (options) => {
     onThemeChange ({ theme }) {
       themeChangeRD.mutate(() => ({ theme, isDark: theme === 'dark', isLight: theme === 'light' }))
     },
+    // 这里的 globalData 实际上是没有用的，会被 App 默认实现中定义的同名字段覆盖掉
+    // 之所以把这个“没用”的东西留下来是为了完整性考虑，当其它部分出问题的时候，仍然可以降级发挥作用
     globalData: defaultGlobalData
   }
   App(appOptions)
