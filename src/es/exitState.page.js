@@ -6,7 +6,11 @@ import {
 } from '../libs/mobius-utils.js'
 
 export const exitStateDriver = options => {
-  const { enableExitState = false, pageOptions, autoEquip = false } = options
+  const {
+    pageOptions,
+    enableExitState = false,
+    autoEquip = false
+  } = options
 
   if (!enableExitState) {
     return { inputs: {}, outputs: {}, others: {} }
@@ -19,7 +23,7 @@ export const exitStateDriver = options => {
   const exitStateInD = Data.of({})
   const exitStateRD = replayWithLatest(1, Data.empty())
 
-  const equipPageOptions = () => {
+  const equipPageOptions = pageOptions => {
     // 拦截 onLoad 方法并追加 exitState 相关的处理逻辑
     const _onLoad = pageOptions.onLoad
     pageOptions.onLoad = function (...args) {
@@ -46,6 +50,7 @@ export const exitStateDriver = options => {
     }
   }
 
+  // ! side effects
   if (autoEquip) {
     equipPageOptions(pageOptions)
   }
