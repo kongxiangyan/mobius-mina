@@ -6,7 +6,7 @@ import {
 } from '../libs/mobius-utils.js'
 
 export const exitStateDriver = options => {
-  const { enableExitState, pageOptions, autoEquip = false } = options
+  const { enableExitState = false, pageOptions, autoEquip = false } = options
 
   if (!enableExitState) {
     return { inputs: {}, outputs: {}, others: {} }
