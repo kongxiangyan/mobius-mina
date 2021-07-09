@@ -3,9 +3,9 @@ import {
   Data,
   replayWithLatest, binaryTweenPipeAtom,
   useGeneralDriver
-} from '../libs/mobius-utils.js'
+} from '../../libs/mobius-utils.js'
 
-import { enterOptionsRD } from './global.js'
+import { enterOptionsRD } from '../global.js'
 
 const DEFAULT_TYPES = {
   video: { typeName: 'video', mimeType: 'video/*' },

@@ -2,8 +2,8 @@ import {
   Data,
   replayWithLatest,
   useGeneralDriver
-} from '../libs/mobius-utils.js'
-import { appRD as globalAppRD } from './global.js'
+} from '../../libs/mobius-utils.js'
+import { appRD as globalAppRD } from '../global.js'
 
 const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
 

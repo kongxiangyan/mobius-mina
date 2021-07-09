@@ -2,7 +2,7 @@ import {
   Data,
   replayWithLatest,
   useGeneralDriver
-} from '../libs/mobius-utils.js'
+} from '../../libs/mobius-utils.js'
 
 export const themeDriver = (options = {}) => {
   const defaultTheme = options.defaultTheme || 'light'
