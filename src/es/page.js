@@ -6,7 +6,7 @@ import {
   createGeneralDriver, useGeneralDriver
 } from '../libs/mobius-utils.js'
 import { usePageShareDriver } from './share.page.js'
-import { useExitStateDriver } from './exitState.page.js'
+import { usePageExitStateDriver } from './exitState.page.js'
 
 // TODO: pageScroll 添加节流选项
 // TODO: overwriteReserved 添加更加多样的控制选项，包括提示级别（info, warn, error）、更精确的字段规则（为单独的方法名定义规则）
@@ -206,7 +206,7 @@ export const pageDriver = createGeneralDriver({
     }
 
     const pageShareDriver = usePageShareDriver({ enableShareAppMessage, enableShareTimeline, enableAddToFavorites, autoEquip: true }, {})
-    const exitStateDriver = useExitStateDriver({ enableExitState, pageOptions, autoEquip: true }, {})
+    const pageExitStateDriver = usePageExitStateDriver({ enableExitState, pageOptions, autoEquip: true }, {})
 
     Page(pageOptions)
 
@@ -214,7 +214,7 @@ export const pageDriver = createGeneralDriver({
       inputs: {
         data: dataInD,
         ...pageShareDriver.inputs,
-        ...exitStateDriver.inputs,
+        ...pageExitStateDriver.inputs,
         ...methodAtoms
       },
       outputs: {
@@ -234,7 +234,7 @@ export const pageDriver = createGeneralDriver({
         tabItemTap: tabItemTapRD,
 
         ...pageShareDriver.outputs,
-        ...exitStateDriver.outputs,
+        ...pageExitStateDriver.outputs,
         ...methodAtoms
       }
     }

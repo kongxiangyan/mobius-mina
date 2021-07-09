@@ -5,7 +5,7 @@ import {
   useGeneralDriver
 } from '../libs/mobius-utils.js'
 
-export const exitStateDriver = options => {
+export const pageExitStateDriver = options => {
   const {
     pageOptions,
     enableExitState = false,
@@ -68,4 +68,4 @@ export const exitStateDriver = options => {
   }
 }
 
-export const useExitStateDriver = useGeneralDriver(exitStateDriver)
+export const usePageExitStateDriver = useGeneralDriver(pageExitStateDriver)
