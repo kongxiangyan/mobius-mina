@@ -17,9 +17,10 @@ export const themeDriver = (options = {}) => {
   const themeRD = replayWithLatest(1, Data.of(initialTheme || defaultTheme))
 
   // update theme state when theme change happen
+  // @refer: https://developers.weixin.qq.com/miniprogram/dev/api/base/app/app-event/wx.onThemeChange.html
   wx.onThemeChange(({ theme }) => {
     console.log('[MobiusMINA] theme: ', theme)
-    themeRD.triggerValue(theme)
+    themeRD.mutate(() => theme)
   })
 
   return {
