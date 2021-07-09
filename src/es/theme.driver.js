@@ -1,6 +1,7 @@
 import {
   Data,
-  replayWithLatest
+  replayWithLatest,
+  useGeneralDriver
 } from '../libs/mobius-utils.js'
 
 export const themeDriver = (options = {}) => {
@@ -22,8 +23,11 @@ export const themeDriver = (options = {}) => {
   })
 
   return {
+    inputs: {},
     outputs: {
       theme: themeRD
     }
   }
 }
+
+export const useThemeDriver = useGeneralDriver(themeDriver)
