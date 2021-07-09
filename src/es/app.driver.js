@@ -1,6 +1,7 @@
 import {
   Data,
-  replayWithLatest
+  replayWithLatest,
+  useGeneralDriver
 } from '../libs/mobius-utils.js'
 import { appRD as globalAppRD } from './global.js'
 
@@ -84,3 +85,5 @@ export const appDriver = (options) => {
     }
   }
 }
+
+export const useAppDriver = useGeneralDriver(appDriver)
