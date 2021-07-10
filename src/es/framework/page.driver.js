@@ -7,19 +7,23 @@ import {
 } from '../../libs/mobius-utils.js'
 import { usePageShareDriver } from './share.page.js'
 import { usePageExitStateDriver } from './exitState.page.js'
+import { equipLifetimes } from './equipLifetimes.js'
 
 // TODO: pageScroll 添加节流选项
 // TODO: overwriteReserved 添加更加多样的控制选项，包括提示级别（info, warn, error）、更精确的字段规则（为单独的方法名定义规则）
 
 const RESERVED_PAGE_METHOD_NAMES = [
-  'load', 'show', 'ready', 'ready', 'hide', 'unload', 'tabItemTap',
-  'pullDownRefresh', 'reachBottom', 'pageScroll', 'resize',
-  'shareAppMessage', 'shareTimeline', 'addToFavorites',
+  'onLoad', 'onShow', 'onReady', 'onHide', 'onUnload', 'onTabItemTap',
+  'onPullDownRefresh', 'onReachBottom', 'onPageScroll', 'onResize',
+  'onShareAppMessage', 'onShareTimeline', 'onAddToFavorites',
   'onSaveExitState'
 ]
 
 const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
 
+/**
+ * @return { name, func, data }
+ */
 const makeMethodsItem = method => {
   if (isString(method)) {
     const _data = Data.empty()
@@ -27,6 +31,12 @@ const makeMethodsItem = method => {
       _data.triggerValue(e)
     }
     return { name: method, func: _func, data: _data }
+  } else if (isFunction(method)) {
+    if (!method.name) {
+      throw (new TypeError('"method" is expected to be named function instead of arrow function.'))
+    } else {
+      return { name: method.name, func: method, data: undefined }
+    }
   } else if (isObject(method)) {
     const { name, func, data } = method
     if (!name) {
@@ -62,21 +72,21 @@ const makeMethodsItem = method => {
     // 如果提供了 func 但没有提供 data，则 data 为空
     if (func && !data) {
       res.func = func
+      res.data = undefined
     }
     return res
   } else {
-    throw (new TypeError(`item of "methods" is expected to be type of "String" | "Object", but received "${typeof method}".`))
+    throw (new TypeError(`item of "methods" is expected to be type of "String" | "Object" | "Function", but received "${typeof method}".`))
   }
 }
 const makeValidMethods = methods => {
   if (isObject(methods)) {
     const _methods = Object.entries(methods)
-      .map(([name, item]) => isFunction(item) ? item() : isObject(item) ? ({ ...item, name }) : item)
+      .map(([name, item]) => isObject(item) ? ({ name, ...item }) : item)
       .map(makeMethodsItem)
     return _methods
   } else if (isArray(methods)) {
     const _methods = methods
-      .map(item => isFunction(item) ? item() : item)
       .map(makeMethodsItem)
     return _methods
   } else {
@@ -84,9 +94,19 @@ const makeValidMethods = methods => {
   }
 }
 
+/**
+ * @description
+ *  - methods 用于定义除生命周期和原生方法之外的方法，比如视图自定义事件等
+ *  - others 是定义在 pageOptions 最上层的数据或方法，与原生 Page 的使用方式一致
+ *  - MobiusMINA 框架自定义了生命周期和部分原生方法，可以通过 methods 和 others 重写（覆盖 ）
+ *  - 使用 methods 和 others 会导致 MobiusMINA 的定义丢失，因此框架会进行提示
+ *  - 如果想在保留 MobiusMINA 定义的基础上自定义生命周期和原生方法，请使用 lifetimes
+ *  - 优先级排序：MobiusMINA < methods < others < 配置了 mode:overwrite 的 lifetime
+ */
+
 export const pageDriver = createGeneralDriver({
   prepareSingletonLevelContexts: (options = {}, driverLevelContexts) => {
-    // 当 isOverwriteReserved 设置为 true 的时候，methods 如果涉及到保留方法名，不会在控制台打印提示
+    // 当 isOverwriteReserved 设置为 true 的时候，methods 或 others 如果涉及到保留方法名，不会在控制台打印提示
     // 我们希望这些「非常规」操作在开发者编写的代码层面有所体现，而不是必需要靠推断才能够知晓
     const {
       name = 'UnnamedPage',
@@ -96,7 +116,9 @@ export const pageDriver = createGeneralDriver({
         enableShareAppMessage = false, enableShareTimeline = false, enableAddToFavorites = false,
         enablePageScroll = false,
         enableExitState = false
-      } = {}
+      } = {},
+      lifetimes = {},
+      ...others
     } = options
 
     const pageRD = replayWithLatest(1, Data.empty())
@@ -147,11 +169,16 @@ export const pageDriver = createGeneralDriver({
       return prev
     }, {})
 
-    // 检测保留的方法名，重名的时候进行提示
-    const names = validMethods.map(item => item.name)
-    const reservedNames = names.filter(name => RESERVED_PAGE_METHOD_NAMES.includes(name))
-    if (reservedNames.length > 0 && !isOverwriteReserved) {
-      console.warn(`[MobiusMINA] reserved names detected: ${JSON.stringify(reservedNames)}.`)
+    // 检测 methods 和 others 中保留的方法名，重名的时候进行提示
+    const namesOfMethods = validMethods.map(item => item.name)
+    const reservedNamesInMethods = namesOfMethods.filter(name => RESERVED_PAGE_METHOD_NAMES.includes(name))
+    if (reservedNamesInMethods.length > 0 && !isOverwriteReserved) {
+      console.warn(`[MobiusMINA] reserved names detected in methods definition: ${JSON.stringify(reservedNamesInMethods)}.`)
+    }
+    const namesOfOthers = Object.keys(others)
+    const reservedNamesInOthers = namesOfOthers.filter(name => RESERVED_PAGE_METHOD_NAMES.includes(name))
+    if (reservedNamesInOthers.length > 0 && !isOverwriteReserved) {
+      console.warn(`[MobiusMINA] reserved names detected in others definition: ${JSON.stringify(reservedNamesInOthers)}.`)
     }
 
     // 注意：
@@ -196,7 +223,8 @@ export const pageDriver = createGeneralDriver({
       onTabItemTap: function (res) {
         tabItemTapRD.mutate(() => res)
       },
-      ...methodFuncs
+      ...methodFuncs,
+      ...others
     }
     // @refer: https://developers.weixin.qq.com/miniprogram/dev/reference/api/Page.html#onPageScroll-Object-object
     if (enablePageScroll && !pageOptions.onPageScroll) {
@@ -205,8 +233,10 @@ export const pageDriver = createGeneralDriver({
       }
     }
 
+    // ! 会修改 pageOptions
     const pageShareDriver = usePageShareDriver({ enableShareAppMessage, enableShareTimeline, enableAddToFavorites, autoEquip: true }, {})
     const pageExitStateDriver = usePageExitStateDriver({ enableExitState, pageOptions, autoEquip: true }, {})
+    equipLifetimes(pageOptions, lifetimes)
 
     Page(pageOptions)
 
