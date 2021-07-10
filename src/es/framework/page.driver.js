@@ -173,12 +173,12 @@ export const pageDriver = createGeneralDriver({
     const namesOfMethods = validMethods.map(item => item.name)
     const reservedNamesInMethods = namesOfMethods.filter(name => RESERVED_PAGE_METHOD_NAMES.includes(name))
     if (reservedNamesInMethods.length > 0 && !isOverwriteReserved) {
-      console.warn(`[MobiusMINA] reserved names detected in methods definition: ${JSON.stringify(reservedNamesInMethods)}.`)
+      console.warn(`[MobiusMINA] page - reserved names detected in methods definition: ${JSON.stringify(reservedNamesInMethods)}.`)
     }
     const namesOfOthers = Object.keys(others)
     const reservedNamesInOthers = namesOfOthers.filter(name => RESERVED_PAGE_METHOD_NAMES.includes(name))
     if (reservedNamesInOthers.length > 0 && !isOverwriteReserved) {
-      console.warn(`[MobiusMINA] reserved names detected in others definition: ${JSON.stringify(reservedNamesInOthers)}.`)
+      console.warn(`[MobiusMINA] page - reserved names detected in others definition: ${JSON.stringify(reservedNamesInOthers)}.`)
     }
 
     // 注意：

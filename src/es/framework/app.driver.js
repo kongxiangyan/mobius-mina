@@ -4,11 +4,22 @@ import {
   useGeneralDriver
 } from '../../libs/mobius-utils.js'
 import { appRD as globalAppRD } from '../global.js'
+import { equipLifetimes } from './equipLifetimes.js'
 
+const RESERVED_APP_METHOD_NAMES = [
+  'onLaunch', 'onShow', 'onHide', 'onError', 'onPageNotFound', 'onUnhandledRejection', 'onThemeChange', 'globalData'
+]
 const deepCopyViaJSON = obj => JSON.parse(JSON.stringify(obj))
 
 export const appDriver = (options) => {
-  const { defaultGlobalData = {} } = options
+  const {
+    defaultGlobalData = {},
+    config: {
+      isOverwriteReserved = false
+    } = {},
+    lifetimes = {},
+    ...others
+  } = options
 
   const launchRD = replayWithLatest(1, Data.empty())
   const showRD = replayWithLatest(1, Data.empty())
@@ -35,6 +46,13 @@ export const appDriver = (options) => {
     globalDataOutRD.mutate(() => curData)
     globalDataChangeRD.mutate(() => ({ prev: prevData, cur: curData, change: deepCopyViaJSON(data) }))
   })
+
+  // 检测 others 中保留的方法名，重名的时候进行提示
+  const namesOfOthers = Object.keys(others)
+  const reservedNamesInOthers = namesOfOthers.filter(name => RESERVED_APP_METHOD_NAMES.includes(name))
+  if (reservedNamesInOthers.length > 0 && !isOverwriteReserved) {
+    console.warn(`[MobiusMINA] app - reserved names detected in others definition: ${JSON.stringify(reservedNamesInOthers)}.`)
+  }
 
   // @refer: https://developers.weixin.qq.com/miniprogram/dev/reference/api/App.html
   const appOptions = {
@@ -64,8 +82,13 @@ export const appDriver = (options) => {
     },
     // 这里的 globalData 实际上是没有用的，会被 App 默认实现中定义的同名字段覆盖掉
     // 之所以把这个“没用”的东西留下来是为了完整性考虑，当其它部分出问题的时候，仍然可以降级发挥作用
-    globalData: defaultGlobalData
+    globalData: defaultGlobalData,
+    ...others
   }
+
+  // ! 会修改 appOptions
+  equipLifetimes(appOptions, lifetimes)
+
   App(appOptions)
 
   return {
