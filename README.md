@@ -16,7 +16,7 @@
   <a href="./docs/readme_zh.md" style="color: hsla(264, 100%, 50%, 100%);">📜 中文文档</a>
 </p>
 
-<h1 align="center">Lib Name</h1>
+<h1 align="center">Mobius MINA</h1>
 
 🎨 One sentence introduction to the project.
 
@@ -66,6 +66,7 @@ All the relative documentations of detail, pls check `./docs`，which contains:
 
 ## Built With
 
+- [Mobius Utils](https://github.com/we-mobius/mobius-utils) 🤞
 - somthing else...
 
 ## Author

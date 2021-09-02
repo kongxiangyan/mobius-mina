@@ -56,22 +56,61 @@ export const getReleaseConfig = () => ([
   {
     target: 'web',
     entry: {
-      main: './src/main.js',
-      worker: './src/worker.release.entry.js'
+      main: './src/main.ts',
+      worker: './src/worker.release.entry.ts'
     },
     output: {
-      filename: '[name].umd.js',
-      path: PATHS.output,
+      filename: '[name].js',
+      path: path.resolve(PATHS.output, './modules/umd'),
       // @refer: https://webpack.js.org/configuration/output/#outputlibrarytarget
       // @refer: https://webpack.js.org/configuration/output/#outputlibrarytype
       // libraryTarget: 'umd',
       library: {
-        name: 'MobiusLib',
+        name: 'MobiusMINA',
         type: 'umd'
       },
       // @refer: https://webpack.js.org/configuration/output/#outputglobalobject
       globalObject: 'this',
       umdNamedDefine: true
+    },
+    ...reusedConfigs
+  },
+  {
+    target: 'node',
+    entry: {
+      main: './src/main.ts',
+      worker: './src/worker.release.entry.ts'
+    },
+    output: {
+      filename: '[name].js',
+      path: path.resolve(PATHS.output, './modules/cjs'),
+      // @refer: https://webpack.js.org/configuration/output/#outputlibrarytarget
+      // @refer: https://webpack.js.org/configuration/output/#outputlibrarytype
+      // libraryTarget: 'umd',
+      library: {
+        name: 'MobiusMINA',
+        type: 'commonjs'
+      },
+      // @refer: https://webpack.js.org/configuration/output/#outputglobalobject
+      globalObject: 'this'
+    },
+    ...reusedConfigs
+  },
+  {
+    target: 'web',
+    entry: {
+      main: './src/main.ts',
+      worker: './src/worker.release.entry.ts'
+    },
+    experiments: {
+      outputModule: true
+    },
+    output: {
+      filename: '[name].js',
+      path: path.resolve(PATHS.output, './modules/esm'),
+      library: {
+        type: 'module'
+      }
     },
     ...reusedConfigs
   }

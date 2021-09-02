@@ -1,4 +1,4 @@
-const PUBLIC_PATH = './' // '/'
+const PUBLIC_PATH = '/' // '/'
 // https://fonts.googleapis.com/
 //  -> https://fonts.googleapis.cnpmjs.org/
 //  -> https://fonts.dogedoge.com/
@@ -6,7 +6,7 @@ export const CSS_CDN_ORIGIN = 'https://fonts.googleapis.cnpmjs.org/'
 const CSP_WHITE_LIST = 'https://*.unpkg.com https://*.jsdelivr.net https://*.cloudflare.com'
 
 const commonTemplate = {
-  title: 'Hello, Mobius Lib!',
+  title: 'Hello, Mobius MINA!',
   'meta-csp':
     `default-src 'self' ${CSP_WHITE_LIST};` +
     ` script-src 'self' 'unsafe-inline' 'unsafe-eval' ${CSP_WHITE_LIST};` +
@@ -88,7 +88,7 @@ const commonTemplate = {
               <div class="svg-loading" style="width: 45px; height: 45px;"></div>
             </p>
             <p>
-              Mobius Template Project!
+              Mobius MINA!
             </p>
           </div>
         </div>
