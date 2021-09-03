@@ -36,11 +36,11 @@
     "baseUrl": ".",                                      /* Specify the base directory to resolve non-relative module names. */
     "paths": {
       "ES": [
-        "src/es/index.js",
-        "src/es/index.mjs"
+        "./src/es/index.js",
+        "./src/es/index.mjs"
       ],
       "ES/*": [
-        "src/es/*"
+        "./src/es/*"
       ],
       "CJS": [
         "./src/cjs/index.cjs"

@@ -70,7 +70,7 @@ export const getReleaseConfig = () => ([
         type: 'umd'
       },
       // @refer: https://webpack.js.org/configuration/output/#outputglobalobject
-      globalObject: 'this',
+      globalObject: 'globalThis',
       umdNamedDefine: true
     },
     ...reusedConfigs
@@ -89,10 +89,8 @@ export const getReleaseConfig = () => ([
       // libraryTarget: 'umd',
       library: {
         name: 'MobiusMINA',
-        type: 'commonjs'
-      },
-      // @refer: https://webpack.js.org/configuration/output/#outputglobalobject
-      globalObject: 'this'
+        type: 'commonjs2'
+      }
     },
     ...reusedConfigs
   },
